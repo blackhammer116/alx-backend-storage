@@ -4,10 +4,11 @@ redis: to handle the cache
 uuid: to generate a random id for the key value
 pair
 Union: for type annotation
+Callable: used for type annotation
 """
 import redis
 import uuid
-from typing import Union
+from typing import Union, Callable
 
 
 class Cache():
@@ -34,3 +35,35 @@ class Cache():
         
         return key
 
+    def get(self, key: str, fn: Callable=None) -> Union[int, str, float, bytes, None]:
+        """
+        A method that gets the value of the redis using the key
+        and returning the value with the desired type
+        Args:
+            key: key of the redis
+            fn: A Callable function
+        """
+        value  = self._redis.get(key)
+        if fn is None:
+            return value
+        if value is None:
+            return None
+        return fn(value)
+
+    def get_str(self, key: str) -> Union[str, None]:
+        """
+        A method that automatically return the value of get method
+        to the desired type in our case str
+        Args:
+            key: key of the redis
+        """
+        return self.get(key, str)
+
+    def get_int(self, key: str) -> Union[int, None]:
+        """
+        A method that automatically return the value
+        by the desired type in this case INT
+        Args:
+            key: key of the redis
+        """
+        return self.get(key, int)
