@@ -113,3 +113,19 @@ class Cache():
             key: key of the redis
         """
         return self.get(key, int)
+
+def replay(func: Callable):
+    input_key = func.__qualname__ + ":inputs"
+    output_key = func.__qualname__ + ":outputs"
+
+    cache = func.__self__
+
+    inputs = cache._redis.lrange(input_key, 0, -1)
+    outputs = cache._redis.lrange(output_key, 0, -1)
+
+    print(f"{func.__qualname__} was called {len(inputs)} times:")
+
+    for inp, out in zip(inputs, outputs):
+        input_args = eval(inp.decode())
+        output_value = out.decode()
+        print(f"{func.__qualname__}(*{input_args}) -> {output_value}")
