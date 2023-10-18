@@ -9,6 +9,7 @@ Callable: used for type annotation
 import redis
 import uuid
 from typing import Union, Callable
+from functools import wraps
 
 
 class Cache():
@@ -24,6 +25,24 @@ class Cache():
 
         self._redis.flushdb()
 
+    def cache_calls(method: Callable) -> Callable:
+        """
+        creating a decorator to count calls of methods
+        Args:
+            method: a Callable to be counted
+        """
+        @wraps(method)
+        def wrapped(self, *args, **kwargs):
+            """
+            A function that increments a callable
+            by 1
+            """
+            key = method.__qualname__
+            self._redis.incr(key)
+            return method(self, *args, **kwargs)
+        return wrapped
+
+    @cache_calls
     def store(self, data: Union[str, int, float, bytes]) -> str:
         """
         A method that sets a random uuid key to the value(data) and returns a key
