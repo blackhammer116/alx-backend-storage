@@ -29,6 +29,32 @@ def cache_calls(method: Callable) -> Callable:
         return method(self, *args, **kwargs)
     return wrapped
 
+def call_history(method: Callable) -> Callable:
+    """
+    A decorator to list call history of a
+    method
+    Args:
+        method: a Callable function
+    """
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        """
+        A wrapper function that creates a list of
+        inputs and outputs to that method
+        Args:
+            self: to access the redis object
+        """
+        input_key = method.__qualname__ + ":inputs"
+        output_key = method.__qualname__ + ":outputs"
+
+        self._redis.rpush(input_key, str(args))
+
+        output = method(self, *args, **kwargs)
+
+        self._redis.rpush(output_key, str(output))
+        return output
+    return wrapped
+
 class Cache():
     """
     Cache class to start handling the cache using redis
@@ -43,6 +69,7 @@ class Cache():
         self._redis.flushdb()
 
     @cache_calls
+    @call_history
     def store(self, data: Union[str, int, float, bytes]) -> str:
         """
         A method that sets a random uuid key to the value(data) and returns a key
