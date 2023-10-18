@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+#git push file
+git add .;git commit -m "$1";git push
+
