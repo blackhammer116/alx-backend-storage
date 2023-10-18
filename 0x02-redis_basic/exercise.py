@@ -12,6 +12,23 @@ from typing import Union, Callable
 from functools import wraps
 
 
+def cache_calls(method: Callable) -> Callable:
+    """
+    creating a decorator to count calls of methods
+    Args:
+        method: a Callable to be counted
+    """
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        """
+        A function that increments a callable
+        by 1
+        """
+        key = method.__qualname__
+        self._redis.incr(key)
+        return method(self, *args, **kwargs)
+    return wrapped
+
 class Cache():
     """
     Cache class to start handling the cache using redis
@@ -24,23 +41,6 @@ class Cache():
         self._redis = redis.Redis()
 
         self._redis.flushdb()
-
-    def cache_calls(method: Callable) -> Callable:
-        """
-        creating a decorator to count calls of methods
-        Args:
-            method: a Callable to be counted
-        """
-        @wraps(method)
-        def wrapped(self, *args, **kwargs):
-            """
-            A function that increments a callable
-            by 1
-            """
-            key = method.__qualname__
-            self._redis.incr(key)
-            return method(self, *args, **kwargs)
-        return wrapped
 
     @cache_calls
     def store(self, data: Union[str, int, float, bytes]) -> str:
