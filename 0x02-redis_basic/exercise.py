@@ -29,6 +29,7 @@ def cache_calls(method: Callable) -> Callable:
         return method(self, *args, **kwargs)
     return wrapped
 
+
 def call_history(method: Callable) -> Callable:
     """
     A decorator to list call history of a
@@ -55,6 +56,7 @@ def call_history(method: Callable) -> Callable:
         return output
     return wrapped
 
+
 class Cache():
     """
     Cache class to start handling the cache using redis
@@ -72,16 +74,18 @@ class Cache():
     @call_history
     def store(self, data: Union[str, int, float, bytes]) -> str:
         """
-        A method that sets a random uuid key to the value(data) and returns a key
+        A method that sets a random uuid key to the value(data)
+        and returns a key
         Args:
             data: the value to be set on the key
         """
         key = str(uuid.uuid4())
         self._redis.set(key, data)
-        
+
         return key
 
-    def get(self, key: str, fn: Callable=None) -> Union[int, str, float, bytes, None]:
+    def get(self, key: str, fn: Callable = None) -> \
+            Union[int, str, float, bytes, None]:
         """
         A method that gets the value of the redis using the key
         and returning the value with the desired type
@@ -89,7 +93,7 @@ class Cache():
             key: key of the redis
             fn: A Callable function
         """
-        value  = self._redis.get(key)
+        value = self._redis.get(key)
         if fn is None:
             return value
         if value is None:
@@ -113,6 +117,7 @@ class Cache():
             key: key of the redis
         """
         return self.get(key, int)
+
 
 def replay(func: Callable):
     input_key = func.__qualname__ + ":inputs"
